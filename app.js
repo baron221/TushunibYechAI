@@ -211,7 +211,7 @@ document.addEventListener("DOMContentLoaded", () => {
         ]
       },
       final_calc: {
-        tutorMsg: "Barakalla! Endi oxirgi qadam: **12 dan 4 ni ayirsak nechchi qoladi?** Barmoqlaringizda yoki doskada chizib hisoblang! 🧮",
+        tutorMsg: "Barakalla! Endi oxirgi qadam: **12 dan 4 ni ayirsak nechchi qoladi?** Barmoqlaringizda yoki hayolan hisoblang! 🧮",
         choices: [
           { text: "8 ta olma", correct: true, nextState: "success_state", feedback: "Ura! To'g'ri yechdingiz! Fikrlash sizga yordam berdi!" },
           { text: "6 ta olma", correct: false, nextState: "wrong_calc", feedback: "Deyarli yaqin, lekin biroz adashting." },
@@ -410,13 +410,6 @@ document.addEventListener("DOMContentLoaded", () => {
   const closeTrophiesBtn = document.getElementById("close-trophies-btn");
   const trophyDrawer = document.getElementById("trophy-drawer");
 
-  // Blackboard Drawing doska Canvas
-  const sketchpadToggleBtn = document.getElementById("sketchpad-toggle-btn");
-  const closeCanvasBtn = document.getElementById("close-canvas-btn");
-  const clearCanvasBtn = document.getElementById("clear-canvas-btn");
-  const sketchpadContainer = document.getElementById("sketchpad-container");
-  const canvas = document.getElementById("sketchpad-canvas");
-  const ctx = canvas.getContext("2d");
 
   // Dashboard view toggles
   const btnViewParent = document.getElementById("btn-view-parent");
@@ -451,110 +444,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  // --- 3. DYNAMIC INTERACTIVE BLACKBOARD CANVAS DRAWING BOARD ---
-  let isDrawing = false;
-  let lastX = 0;
-  let lastY = 0;
-
-  // Initialize black canvas background
-  function initCanvasBackground() {
-    ctx.fillStyle = "#090910";
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-  }
-
-  initCanvasBackground();
-
-  sketchpadToggleBtn.addEventListener("click", () => {
-    synth.playCorrect();
-    sketchpadContainer.classList.toggle("open");
-    
-    if (sketchpadContainer.classList.contains("open")) {
-      // Ensure canvas coordinates match visible bounds exactly
-      setTimeout(() => {
-        canvas.width = canvas.clientWidth || 600;
-        canvas.height = canvas.clientHeight || 276;
-        initCanvasBackground();
-      }, 400);
-    }
-  });
-
-  closeCanvasBtn.addEventListener("click", () => {
-    synth.playWrong();
-    sketchpadContainer.classList.remove("open");
-  });
-
-  clearCanvasBtn.addEventListener("click", () => {
-    synth.playCorrect();
-    initCanvasBackground();
-  });
-
-  // Unified coordinate mapper supporting both mouse and touch devices
-  function getCoordinates(e) {
-    const rect = canvas.getBoundingClientRect();
-    if (e.touches && e.touches.length > 0) {
-      return {
-        x: e.touches[0].clientX - rect.left,
-        y: e.touches[0].clientY - rect.top
-      };
-    } else if (e.changedTouches && e.changedTouches.length > 0) {
-      return {
-        x: e.changedTouches[0].clientX - rect.left,
-        y: e.changedTouches[0].clientY - rect.top
-      };
-    } else {
-      return {
-        x: e.clientX - rect.left,
-        y: e.clientY - rect.top
-      };
-    }
-  }
-
-  function startDrawing(e) {
-    isDrawing = true;
-    const coords = getCoordinates(e);
-    lastX = coords.x;
-    lastY = coords.y;
-  }
-
-  function draw(e) {
-    if (!isDrawing) return;
-    const coords = getCoordinates(e);
-
-    ctx.beginPath();
-    ctx.moveTo(lastX, lastY);
-    ctx.lineTo(coords.x, coords.y);
-    ctx.strokeStyle = "#14b8a6"; // electric teal
-    ctx.lineWidth = 3.5;
-    ctx.lineCap = "round";
-    ctx.lineJoin = "round";
-    ctx.stroke();
-
-    lastX = coords.x;
-    lastY = coords.y;
-  }
-
-  function stopDrawing() {
-    isDrawing = false;
-  }
-
-  // Drawing event registers
-  canvas.addEventListener("mousedown", startDrawing);
-  canvas.addEventListener("mousemove", draw);
-  canvas.addEventListener("mouseup", stopDrawing);
-  canvas.addEventListener("mouseleave", stopDrawing);
-
-  // Touch Support (tablets/phones) without synthetic dispatching
-  canvas.addEventListener("touchstart", (e) => {
-    e.preventDefault();
-    startDrawing(e);
-  }, { passive: false });
-
-  canvas.addEventListener("touchmove", (e) => {
-    e.preventDefault();
-    draw(e);
-  }, { passive: false });
-
-  canvas.addEventListener("touchend", stopDrawing, { passive: false });
 
   // --- AVATAR SHOP DRAWER TOGGLE ---
   shopToggleBtn.addEventListener("click", () => {
