@@ -1,0 +1,18 @@
+{
+  "name": "tushunib-yech-showcase",
+  "version": "1.0.0",
+  "description": "Interactive Web Showcase for 'Tushunib Yech' AI Virtual Tutor Startup",
+  "main": "index.html",
+  "scripts": {
+    "dev": "npx -y http-server -p 3000 -o"
+  },
+  "keywords": [
+    "education",
+    "EdTech",
+    "Socratic",
+    "AI",
+    "Uzbekistan"
+  ],
+  "author": "Antigravity Pair Programmer",
+  "license": "ISC"
+}
