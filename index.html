@@ -285,7 +285,7 @@
               <input type="file" id="ocr-file" accept="image/*" style="display: none;">
               <div class="ocr-icon">
                 <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+                  <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2 2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
                   <circle cx="12" cy="13" r="4"></circle>
                 </svg>
               </div>
@@ -330,6 +330,7 @@
             
             <div class="chat-header-actions">
               <button id="mute-toggle-btn" class="chat-header-btn">🔊 Ovozli</button>
+              <button id="achievements-toggle-btn" class="chat-header-btn shop-btn-accent" style="border-color: var(--accent-teal); background: rgba(20,184,166,0.12);">🏆 Yutuqlar</button>
               <button id="shop-toggle-btn" class="chat-header-btn shop-btn-accent">🪙 Do'kon</button>
             </div>
             
@@ -387,6 +388,59 @@
                 </div>
               </div>
             </div>
+
+            <!-- Sliding Trophy Cabinet Drawer overlay -->
+            <div class="shop-drawer trophy-drawer" id="trophy-drawer">
+              <div class="shop-header">
+                <h4>🏆 Yutuqlar va Nishonlar</h4>
+                <button id="close-trophies-btn" class="close-shop-btn">&times;</button>
+              </div>
+              <p class="shop-intro-text">Sokratik masalalarni xatosiz yechib, nishonlarni oching!</p>
+              
+              <div class="shop-items">
+                <!-- Trophy 1 -->
+                <div class="shop-item locked" id="badge-logic">
+                  <div class="item-avatar-circle">👑</div>
+                  <div class="item-info">
+                    <h5>Mantiq Qiroli</h5>
+                    <p>Mantiqiy sharlar masalasini (3-sinf) muvaffaqiyatli yechganda beriladi.</p>
+                  </div>
+                  <button class="btn btn-sm btn-avatar-action" disabled>Qulflangan</button>
+                </div>
+
+                <!-- Trophy 2 -->
+                <div class="shop-item locked" id="badge-geometry">
+                  <div class="item-avatar-circle">📐</div>
+                  <div class="item-info">
+                    <h5>Yosh Al-Xorazmiy</h5>
+                    <p>Geometriya yuzasini hisoblash masalasini (4-sinf) yechganda beriladi.</p>
+                  </div>
+                  <button class="btn btn-sm btn-avatar-action" disabled>Qulflangan</button>
+                </div>
+
+                <!-- Trophy 3 -->
+                <div class="shop-item locked" id="badge-perfect">
+                  <div class="item-avatar-circle">💎</div>
+                  <div class="item-info">
+                    <h5>Mustaqil Fikrlovchi</h5>
+                    <p>Birorta ham xato javob variantini tanlamasdan, mukammal yechganingizda beriladi.</p>
+                  </div>
+                  <button class="btn btn-sm btn-avatar-action" disabled>Qulflangan</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Blackboard Canvas Drawing Board Overlay (Hidden by default, slides up) -->
+            <div class="sketchpad-container" id="sketchpad-container">
+              <div class="sketchpad-header">
+                <span>✏️ Sokratik Doska (Chizish va Yozish)</span>
+                <div class="sketchpad-controls">
+                  <button id="clear-canvas-btn" class="btn btn-secondary btn-sm" style="padding: 4px 10px; font-size: 0.72rem;">O'chirish</button>
+                  <button id="close-canvas-btn" class="btn btn-outline btn-sm" style="padding: 4px 10px; font-size: 0.72rem;">Yopish</button>
+                </div>
+              </div>
+              <canvas id="sketchpad-canvas" width="600" height="280"></canvas>
+            </div>
           </div>
 
           <!-- Options & Input Area -->
@@ -396,6 +450,7 @@
             </div>
             
             <div class="custom-input-form">
+              <button id="sketchpad-toggle-btn" class="send-btn" title="✏️ Doskani ochish" style="color: var(--accent-teal); font-size: 1.1rem; width: 50px;">✏️</button>
               <input type="text" id="chat-text-input" placeholder="Bu yerga javobingizni yoki fikringizni yozing..." disabled>
               <button id="chat-send-btn" class="send-btn" disabled>
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -445,153 +500,155 @@
 
         <!-- Parent Dashboard Content View Wrapper -->
         <div class="db-parent-view-content" id="parent-view-content">
-          <div class="db-grid">
-            <!-- Left side: Skill Chart -->
+          <!-- Restricted 4-column layout including iPhone Telegram preview -->
+          <div class="db-grid" style="grid-template-columns: 1fr 1fr 1fr 1fr;">
+            
+            <!-- Column 1: Skill Chart -->
             <div class="db-card visual-chart-card">
               <div class="db-card-header">
-                <h4>Kognitiv Rivojlanish Xaritasi</h4>
-                <p>5 ta asosiy yo'nalish bo'yicha tahlil</p>
+                <h4>Rivojlanish Xaritasi</h4>
+                <p>5 ta yo'nalish bo'yicha tahlil</p>
               </div>
               
               <div class="chart-wrapper">
-                <!-- Inline SVG Radar Skill Chart -->
-                <svg width="300" height="300" viewBox="0 0 200 200" class="radar-chart">
+                <svg width="180" height="180" viewBox="0 0 200 200" class="radar-chart">
                   <!-- Background pentagons -->
                   <polygon points="100,10 185,72 153,172 47,172 15,72" class="radar-grid-5" />
                   <polygon points="100,28 168,77 142,158 58,158 32,77" class="radar-grid-4" />
                   <polygon points="100,46 151,83 131,143 69,143 49,83" class="radar-grid-3" />
                   <polygon points="100,64 134,89 120,129 80,129 66,89" class="radar-grid-2" />
-                  <polygon points="100,82 117,94 109,115 91,115 83,94" class="radar-grid-1" />
                   
-                  <!-- Grid Lines -->
                   <line x1="100" y1="100" x2="100" y2="10" class="radar-axis" />
                   <line x1="100" y1="100" x2="185" y2="72" class="radar-axis" />
                   <line x1="100" y1="100" x2="153" y2="172" class="radar-axis" />
                   <line x1="100" y1="100" x2="47" y2="172" class="radar-axis" />
                   <line x1="100" y1="100" x2="15" y2="72" class="radar-axis" />
 
-                  <!-- Label Markers -->
-                  <text x="100" y="8" text-anchor="middle" class="chart-label">Fikrlash tezligi</text>
-                  <text x="190" y="75" text-anchor="start" class="chart-label">Matnli masala</text>
-                  <text x="158" y="185" text-anchor="middle" class="chart-label">Mustaqillik</text>
-                  <text x="42" y="185" text-anchor="middle" class="chart-label">Arifmetika</text>
-                  <text x="10" y="75" text-anchor="end" class="chart-label">Mantiq</text>
-
-                  <!-- Value Polygons -->
                   <polygon points="100,28 159,80 147,164 65,146 27,76" class="radar-area" id="radar-data-area" />
                   
-                  <!-- Data dots -->
-                  <circle cx="100" cy="28" r="4" class="radar-dot" />
-                  <circle cx="159" cy="80" r="4" class="radar-dot" />
-                  <circle cx="147" cy="164" r="4" class="radar-dot" />
-                  <circle cx="65" cy="146" r="4" class="radar-dot" />
-                  <circle cx="27" cy="76" r="4" class="radar-dot" />
+                  <circle cx="100" cy="28" r="3.5" class="radar-dot" />
+                  <circle cx="159" cy="80" r="3.5" class="radar-dot" />
+                  <circle cx="147" cy="164" r="3.5" class="radar-dot" />
+                  <circle cx="65" cy="146" r="3.5" class="radar-dot" />
+                  <circle cx="27" cy="76" r="3.5" class="radar-dot" />
                 </svg>
               </div>
             </div>
 
-            <!-- Middle side: Activity bars -->
+            <!-- Column 2: Activity bars -->
             <div class="db-card bar-chart-card">
               <div class="db-card-header">
-                <h4>Faollik va O'zlashtirish</h4>
-                <p>Kunlar kesimida to'g'ri yechilgan masalalar soni</p>
+                <h4>Kunlik Faollik</h4>
+                <p>To'g'ri yechilgan masalalar soni</p>
               </div>
               
-              <div class="bar-chart-container">
-                <div class="bar-chart">
+              <div class="bar-chart-container" style="min-height: 120px;">
+                <div class="bar-chart" style="height: 100px;">
                   <div class="bar-col">
-                    <div class="bar-value-label">4 ta</div>
+                    <div class="bar-value-label">4</div>
                     <div class="bar-fill" id="bar-d1" style="height: 40%;"></div>
-                    <div class="bar-label">Du</div>
+                    <div class="bar-label" style="font-size: 0.65rem;">Du</div>
                   </div>
                   <div class="bar-col">
-                    <div class="bar-value-label">6 ta</div>
+                    <div class="bar-value-label">6</div>
                     <div class="bar-fill" id="bar-d2" style="height: 60%;"></div>
-                    <div class="bar-label">Se</div>
+                    <div class="bar-label" style="font-size: 0.65rem;">Se</div>
                   </div>
                   <div class="bar-col">
-                    <div class="bar-value-label">3 ta</div>
+                    <div class="bar-value-label">3</div>
                     <div class="bar-fill" id="bar-d3" style="height: 30%;"></div>
-                    <div class="bar-label">Cho</div>
+                    <div class="bar-label" style="font-size: 0.65rem;">Cho</div>
                   </div>
                   <div class="bar-col">
-                    <div class="bar-value-label">8 ta</div>
+                    <div class="bar-value-label">8</div>
                     <div class="bar-fill" id="bar-d4" style="height: 80%;"></div>
-                    <div class="bar-label">Pay</div>
+                    <div class="bar-label" style="font-size: 0.65rem;">Pay</div>
                   </div>
                   <div class="bar-col">
-                    <div class="bar-value-label">9 ta</div>
+                    <div class="bar-value-label">9</div>
                     <div class="bar-fill" id="bar-d5" style="height: 90%;"></div>
-                    <div class="bar-label">Ju</div>
+                    <div class="bar-label" style="font-size: 0.65rem;">Ju</div>
                   </div>
                   <div class="bar-col highlight">
-                    <div class="bar-value-label">12 ta</div>
+                    <div class="bar-value-label">12</div>
                     <div class="bar-fill" id="bar-d6" style="height: 100%;"></div>
-                    <div class="bar-label">Sha</div>
+                    <div class="bar-label" style="font-size: 0.65rem;">Sha</div>
                   </div>
                   <div class="bar-col">
-                    <div class="bar-value-label">5 ta</div>
+                    <div class="bar-value-label">5</div>
                     <div class="bar-fill" id="bar-d7" style="height: 50%;"></div>
-                    <div class="bar-label">Yak</div>
+                    <div class="bar-label" style="font-size: 0.65rem;">Yak</div>
                   </div>
                 </div>
               </div>
 
-              <div class="db-stats-row">
+              <div class="db-stats-row" style="padding-top: 10px; margin-top: 10px;">
                 <div class="mini-stat">
-                  <h5>Jami yechilgan</h5>
-                  <p id="total-solved-num">47 ta masala</p>
+                  <h5>Jami</h5>
+                  <p id="total-solved-num" style="font-size: 0.95rem;">47 ta</p>
                 </div>
                 <div class="mini-stat">
-                  <h5>O'rtacha faollik</h5>
-                  <p id="average-time-num">Kuniga 22 daqiqa</p>
+                  <h5>O'rtacha</h5>
+                  <p id="average-time-num" style="font-size: 0.95rem;">22 daq</p>
                 </div>
               </div>
             </div>
 
-            <!-- Right side: Reports -->
+            <!-- Column 3: Reports & PDF Exporter -->
             <div class="db-card report-card">
               <div class="db-card-header">
                 <span class="report-badge">AI Pedagog Xulosasi</span>
-                <h4>Pedagogik Tahlil & Maslahat</h4>
+                <h4>Tahlil & Maslahat</h4>
               </div>
               
-              <div class="report-content">
-                <p class="report-lead" id="report-lead-text">
-                  Jasurbek bu hafta <strong>ayirish amali</strong> va <strong>mantiqiy taqqoslash</strong> mavzularida sezilarli o‘sish ko‘rsatdi. Mustaqil yechishga urinish koeffitsiyenti yuqori.
+              <div class="report-content" style="display: flex; flex-direction: column; flex-grow: 1;">
+                <p class="report-lead" id="report-lead-text" style="font-size: 0.82rem; margin-bottom: 12px;">
+                  Jasurbek bu hafta <strong>ayirish amali</strong> va <strong>mantiqiy taqqoslash</strong> mavzularida sezilarli o‘sish ko‘rsatdi.
                 </p>
                 
-                <div class="status-alerts">
-                  <div class="alert-box success">
-                    <span class="alert-icon">📈</span>
-                    <div class="alert-text">
-                      <strong>Kuchli jihatlari:</strong> Geometrik masalalarni tasavvur qilish qobiliyati a'lo darajada (Kognitiv indeks: 92%).
-                    </div>
-                  </div>
-
-                  <div class="alert-box warning">
-                    <span class="alert-icon">⚠️</span>
-                    <div class="alert-text">
-                      <strong>E'tibor berish kerak:</strong> Bo'lish va ko'paytirish amali qatnashgan matnli masalalarda shoshqaloqlik qilmoqda.
-                    </div>
-                  </div>
+                <div class="ai-recommendation" style="padding: 10px; margin-bottom: 14px; flex-grow: 1;">
+                  <h5 style="font-size: 0.72rem;">🤖 AI tavsiyasi:</h5>
+                  <p id="ai-rec-text" style="font-size: 0.75rem; line-height: 1.4;">Jasurbekka darslardan so'ng 10-15 daqiqa davomida bo'lish masalalarini o'yin tarzida yechishni taklif qilamiz.</p>
                 </div>
 
-                <div class="ai-recommendation">
-                  <h5>🤖 Tolibbek AI tavsiyasi:</h5>
-                  <p id="ai-rec-text">Jasurbekka darslardan so'ng 10-15 daqiqa davomida rasmga asosan tuzilgan sodda bo'lish masalalarini o'yin tarzida yechishni taklif qilamiz. Masala shartini ovoz chiqarib o'qitish foydali.</p>
-                </div>
-
-                <button class="btn btn-outline btn-full-width" id="pdf-report-btn">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 8px;">
+                <button class="btn btn-outline btn-sm btn-full-width" id="pdf-report-btn" style="padding: 8px 10px; font-size: 0.78rem;">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 4px; vertical-align: middle;">
                     <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
                     <polyline points="7 10 12 15 17 10"></polyline>
                     <line x1="12" y1="15" x2="12" y2="3"></line>
                   </svg>
-                  Haftalik tahlilni PDF yuklash
+                  PDF Sertifikat yuklash
                 </button>
               </div>
             </div>
+
+            <!-- Column 4: Premium iPhone Telegram Bot Simulator -->
+            <div class="db-card telegram-card">
+              <div class="db-card-header">
+                <span class="report-badge" style="background: rgba(59,130,246,0.12); border-color: rgba(59,130,246,0.25); color: #3B82F6;">Telegram Integratsiyasi</span>
+                <h4>AI Telegram Bot</h4>
+                <p>Ota-onaga push-bildirishnoma</p>
+              </div>
+              
+              <div class="iphone-mockup-wrapper">
+                <div class="iphone-frame">
+                  <div class="iphone-screen">
+                    <div class="telegram-chat-header">
+                      <span class="tg-back-arrow">←</span>
+                      <div class="tg-bot-avatar">🤖</div>
+                      <div class="tg-bot-info">
+                        <h5>Tushunib Yech AI</h5>
+                        <p>bot</p>
+                      </div>
+                    </div>
+                    <div class="telegram-chat-body" id="tg-chat-body">
+                      <!-- Chats injected dynamically by JS -->
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
           </div>
         </div>
 

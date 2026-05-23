@@ -1,4 +1,4 @@
-/* app.js - Socratic AI Tutor & Parents Dashboard Mockup with Premium Features */
+/* app.js - Socratic AI Tutor & Parents Dashboard Mockup with Final Premium Features */
 
 document.addEventListener("DOMContentLoaded", () => {
   // --- 1. WEB AUDIO API SYNTHESIZER FOR GAME SOUND EFFECTS ---
@@ -25,7 +25,6 @@ document.addEventListener("DOMContentLoaded", () => {
       osc.type = 'sine';
       const now = this.ctx.currentTime;
       
-      // Rising dual-frequency tone (pleasant chime)
       osc.frequency.setValueAtTime(523.25, now); // C5
       osc.frequency.setValueAtTime(659.25, now + 0.1); // E5
       
@@ -47,7 +46,6 @@ document.addEventListener("DOMContentLoaded", () => {
       osc.type = 'triangle';
       const now = this.ctx.currentTime;
       
-      // Slidind down frequency hum (gentle nudge warning)
       osc.frequency.setValueAtTime(220.00, now); // A3
       osc.frequency.linearRampToValueAtTime(165.00, now + 0.22); // E3
       
@@ -63,7 +61,6 @@ document.addEventListener("DOMContentLoaded", () => {
       this.init();
       const now = this.ctx.currentTime;
       
-      // C Major Triad arpeggio (retro retro victory chime)
       const playTone = (freq, start, duration) => {
         const osc = this.ctx.createOscillator();
         const gain = this.ctx.createGain();
@@ -88,10 +85,44 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const synth = new SoundSynth();
 
+  // --- 2. UZBEK SPEECH SYNTHESIS (TEXT TO SPEECH) ---
+  function speakUzbek(text) {
+    if (synth.muted) return;
+    
+    // Stop any ongoing speech
+    window.speechSynthesis.cancel();
+    
+    // Remove markdown stars, emojis and convert newlines to speech-friendly dots
+    let cleanText = text.replace(/\*\*/g, "");
+    cleanText = cleanText.replace(/[\uE000-\uF8FF]|\uD83C[\uDC00-\uDFFF]|\uD83D[\uDC00-\uDFFF]|[\u2011-\u26FF]|\uD83E[\uDC00-\uDFFF]/g, "");
+    cleanText = cleanText.replace(/\n/g, ". ");
+
+    const utterance = new SpeechSynthesisUtterance(cleanText);
+    
+    // Attempt to load Uzbek/Turkic phonetics. Turkish (tr-TR) is an excellent equivalent in typical browser configurations.
+    const voices = window.speechSynthesis.getVoices();
+    let selectedVoice = voices.find(v => v.lang.startsWith("uz") || v.lang.startsWith("tr"));
+    
+    if (selectedVoice) {
+      utterance.voice = selectedVoice;
+    }
+    
+    utterance.rate = 0.92; // Slightly slower, child-friendly rate
+    utterance.pitch = 1.05; // Friendly and lively pitch
+    
+    window.speechSynthesis.speak(utterance);
+  }
+
+  // Pre-load voices list for Chrome/Safari compatibility
+  window.speechSynthesis.onvoiceschanged = () => {
+    window.speechSynthesis.getVoices();
+  };
+
   // --- STATE VARIABLES ---
   let currentTask = "task1";
   let currentState = "init";
   let score = 0;
+  let hasMadeWrongChoice = false; // logic to check "Mustaqil Fikrlovchi" badge
   
   // Avatar Shop state
   let currentAvatar = "🐰";
@@ -108,11 +139,18 @@ document.addEventListener("DOMContentLoaded", () => {
     xorazmiy: { emoji: "🧮", name: "Tolibbek (Al-Xorazmiy)" }
   };
 
+  // Achievements state
+  let unlockedBadges = {
+    logic: false,
+    geometry: false,
+    perfect: false
+  };
+
   // --- DIALOGUE DATA (SOCRATIC METHOD STATE MACHINE IN UZBEK) ---
   const dialogueData = {
-    task1: { // Ahmadning olmalari (Arithmetic Subtraction)
+    task1: {
       init: {
-        tutorMsg: "Salom! Keling, birgalikda bu masalani yechamiz:\n\n**Ahmadning 12 ta olmasi bor edi. U 4 tasini ukasiga berdi. Unda nechta olma qoldi?**\n\nMasalani yechishni nimadan boshlaymiz?",
+        tutorMsg: "Salom! Men Tolibbekman. Keling, birgalikda bu masalani yechamiz:\n\n**Ahmadning 12 ta olmasi bor edi. U 4 tasini ukasiga berdi. Unda nechta olma qoldi?**\n\nMasalani yechishni nimadan boshlaymiz?",
         choices: [
           { text: "Ahmadning jami olmalarini aniqlashdan", correct: true, nextState: "step1", feedback: "Barakalla! Masala shartini tahlil qilish juda muhim." },
           { text: "Shunchaki 12 ga 4 ni qo'shib yuboraman", correct: false, nextState: "wrong_add", feedback: "Shoshilmaylik. Yechishdan oldin fikrlab olaylik." },
@@ -173,9 +211,9 @@ document.addEventListener("DOMContentLoaded", () => {
         ]
       },
       final_calc: {
-        tutorMsg: "Barakalla! Endi oxirgi qadam: **12 dan 4 ni ayirsak nechchi qoladi?** Barmoqlaringizda yoki xayolan hisoblab ko'ring-chi! 🧮",
+        tutorMsg: "Barakalla! Endi oxirgi qadam: **12 dan 4 ni ayirsak nechchi qoladi?** Barmoqlaringizda yoki doskada chizib hisoblang! 🧮",
         choices: [
-          { text: "8 ta olma", correct: true, nextState: "success_state", feedback: "Ura! To'g'ri yechdingiz! Mustaqil fikrlashingiz sizga yordam berdi!" },
+          { text: "8 ta olma", correct: true, nextState: "success_state", feedback: "Ura! To'g'ri yechdingiz! Fikrlash sizga yordam berdi!" },
           { text: "6 ta olma", correct: false, nextState: "wrong_calc", feedback: "Deyarli yaqin, lekin biroz adashting." },
           { text: "10 ta olma", correct: false, nextState: "wrong_calc", feedback: "Biroz ko'proq aytib yubording, qaytadan hisobla." }
         ]
@@ -262,7 +300,7 @@ document.addEventListener("DOMContentLoaded", () => {
         choices: []
       }
     },
-    task3: { // To'rtburchak yuzi (Geometry)
+    task3: {
       init: {
         tutorMsg: "Keling geometriya dunyosiga kiramiz! 📐\n\n**To'g'ri to'rtburchakning bo'yi 8 sm, eni esa bo'yidan 2 sm qisqa. Uning yuzini (S) toping.**\n\nBirinchi qadamda nimani aniqlaymiz?",
         choices: [
@@ -316,7 +354,7 @@ document.addEventListener("DOMContentLoaded", () => {
         ]
       },
       success_state: {
-        tutorMsg: "🎉 **MASALA YECHILDI!** 🎉\n\nJuda to'g'ri yechim! To'rtburchakning yuzi **48 kv.sm** ga teng (S = 8 * 6 = 48). Siz ajoyib matematik qobiliyatga egasiz!\n\nTolibbek AI virtual repetitori senga yana yangi marralarni tilaydi!",
+        tutorMsg: "🎉 **MASALA YECHILDI!** 🎉\n\nJuda to'g'ri yechim! To'rtburchakning yuzi **48 kv.sm** ga teng (S = 8 * 6 = 48). Siz ajoyib matematik qobiliyatga egasiz!\n\nTolibbek AI virtual repetitori senga yana yutuqlarni tilaydi!",
         choices: []
       }
     }
@@ -367,6 +405,19 @@ document.addEventListener("DOMContentLoaded", () => {
   const activeTutorAvatar = document.getElementById("active-tutor-avatar");
   const activeTutorName = document.getElementById("active-tutor-name");
   
+  // Achievements drawer
+  const achievementsToggleBtn = document.getElementById("achievements-toggle-btn");
+  const closeTrophiesBtn = document.getElementById("close-trophies-btn");
+  const trophyDrawer = document.getElementById("trophy-drawer");
+
+  // Blackboard Drawing doska Canvas
+  const sketchpadToggleBtn = document.getElementById("sketchpad-toggle-btn");
+  const closeCanvasBtn = document.getElementById("close-canvas-btn");
+  const clearCanvasBtn = document.getElementById("clear-canvas-btn");
+  const sketchpadContainer = document.getElementById("sketchpad-container");
+  const canvas = document.getElementById("sketchpad-canvas");
+  const ctx = canvas.getContext("2d");
+
   // Dashboard view toggles
   const btnViewParent = document.getElementById("btn-view-parent");
   const btnViewTeacher = document.getElementById("btn-view-teacher");
@@ -381,6 +432,9 @@ document.addEventListener("DOMContentLoaded", () => {
   const btnTriggerPrint = document.getElementById("btn-trigger-print");
   const certDate = document.getElementById("cert-date");
 
+  // Telegram bot panel preview
+  const tgChatBody = document.getElementById("tg-chat-body");
+
   // --- AUDIO SYNTH MUTING TOGGLE BINDING ---
   muteToggleBtn.addEventListener("click", () => {
     synth.muted = !synth.muted;
@@ -388,6 +442,7 @@ document.addEventListener("DOMContentLoaded", () => {
       muteToggleBtn.textContent = "🔇 Ovozsiz";
       muteToggleBtn.style.background = "rgba(239, 68, 68, 0.15)";
       muteToggleBtn.style.borderColor = "var(--error-red)";
+      window.speechSynthesis.cancel(); // Mute speech immediately
     } else {
       muteToggleBtn.textContent = "🔊 Ovozli";
       muteToggleBtn.style.background = "rgba(255, 255, 255, 0.04)";
@@ -396,9 +451,107 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
+  // --- 3. DYNAMIC INTERACTIVE BLACKBOARD CANVAS DRAWING BOARD ---
+  let isDrawing = false;
+  let lastX = 0;
+  let lastY = 0;
+
+  // Initialize black canvas background
+  function initCanvasBackground() {
+    ctx.fillStyle = "#090910";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+  }
+
+  initCanvasBackground();
+
+  sketchpadToggleBtn.addEventListener("click", () => {
+    synth.playCorrect();
+    sketchpadContainer.classList.toggle("open");
+    // Ensure canvas coordinates match visible bounds
+    setTimeout(() => {
+      canvas.width = canvas.parentElement.clientWidth || 600;
+      initCanvasBackground();
+    }, 400);
+  });
+
+  closeCanvasBtn.addEventListener("click", () => {
+    synth.playWrong();
+    sketchpadContainer.classList.remove("open");
+  });
+
+  clearCanvasBtn.addEventListener("click", () => {
+    synth.playCorrect();
+    initCanvasBackground();
+  });
+
+  // Drawing event registers
+  canvas.addEventListener("mousedown", startDrawing);
+  canvas.addEventListener("mousemove", draw);
+  canvas.addEventListener("mouseup", stopDrawing);
+  canvas.addEventListener("mouseleave", stopDrawing);
+
+  // Touch Support (tablets/phones)
+  canvas.addEventListener("touchstart", (e) => {
+    e.preventDefault();
+    const touch = e.touches[0];
+    const mouseEvent = new MouseEvent("mousedown", {
+      clientX: touch.clientX,
+      clientY: touch.clientY
+    });
+    canvas.dispatchEvent(mouseEvent);
+  }, { passive: false });
+
+  canvas.addEventListener("touchmove", (e) => {
+    e.preventDefault();
+    const touch = e.touches[0];
+    const mouseEvent = new MouseEvent("mousemove", {
+      clientX: touch.clientX,
+      clientY: touch.clientY
+    });
+    canvas.dispatchEvent(mouseEvent);
+  }, { passive: false });
+
+  canvas.addEventListener("touchend", (e) => {
+    e.preventDefault();
+    const mouseEvent = new MouseEvent("mouseup", {});
+    canvas.dispatchEvent(mouseEvent);
+  }, { passive: false });
+
+  function startDrawing(e) {
+    isDrawing = true;
+    const rect = canvas.getBoundingClientRect();
+    lastX = e.clientX - rect.left;
+    lastY = e.clientY - rect.top;
+  }
+
+  function draw(e) {
+    if (!isDrawing) return;
+    const rect = canvas.getBoundingClientRect();
+    const currentX = e.clientX - rect.left;
+    const currentY = e.clientY - rect.top;
+
+    ctx.beginPath();
+    ctx.moveTo(lastX, lastY);
+    ctx.lineTo(currentX, currentY);
+    ctx.strokeStyle = "#14b8a6"; // electric teal
+    ctx.lineWidth = 3.5;
+    ctx.lineCap = "round";
+    ctx.lineJoin = "round";
+    ctx.stroke();
+
+    lastX = currentX;
+    lastY = currentY;
+  }
+
+  function stopDrawing() {
+    isDrawing = false;
+  }
+
   // --- AVATAR SHOP DRAWER TOGGLE ---
   shopToggleBtn.addEventListener("click", () => {
+    synth.playCorrect();
     shopDrawer.classList.toggle("open");
+    trophyDrawer.classList.remove("open");
   });
 
   closeShopBtn.addEventListener("click", () => {
@@ -409,85 +562,132 @@ document.addEventListener("DOMContentLoaded", () => {
   const shopItemElements = document.querySelectorAll(".shop-item");
   
   shopItemElements.forEach(item => {
-    const cost = parseInt(item.getAttribute("data-cost"));
-    const avatar = item.getAttribute("data-avatar");
+    const cost = parseInt(item.getAttribute("data-cost") || "0");
     const avatarId = item.id.replace("shop-item-", "");
     const actionBtn = item.querySelector(".btn-avatar-action");
 
-    actionBtn.addEventListener("click", (e) => {
-      e.stopPropagation();
-      
-      if (!unlockedAvatars[avatarId]) {
-        // Purchase path
-        if (score >= cost) {
-          // Spend points!
-          score -= cost;
-          scoreCounter.textContent = score;
-          unlockedAvatars[avatarId] = true;
-          
-          // Audio cue
-          synth.playSuccess();
-          
-          // Visual update
-          item.classList.remove("locked");
-          item.classList.add("unlocked");
-          actionBtn.textContent = "Tanlash";
-          actionBtn.classList.remove("btn-primary");
-          actionBtn.classList.add("btn-secondary");
-          
-          renderSystemMessage(`🪙 Tabriklaymiz! "${avatarDetails[avatarId].name}" ustozi qulfdan ochildi!`);
+    if (actionBtn && avatarId && !avatarId.startsWith("badge")) {
+      actionBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        
+        if (!unlockedAvatars[avatarId]) {
+          // Purchase path
+          if (score >= cost) {
+            score -= cost;
+            scoreCounter.textContent = score;
+            unlockedAvatars[avatarId] = true;
+            
+            synth.playSuccess();
+            
+            item.classList.remove("locked");
+            item.classList.add("unlocked");
+            actionBtn.textContent = "Tanlash";
+            actionBtn.classList.remove("btn-primary");
+            actionBtn.classList.add("btn-secondary");
+            
+            updateShopPurchaseButtons();
+            renderSystemMessage(`🪙 Tabriklaymiz! "${avatarDetails[avatarId].name}" ustozi qulfdan ochildi!`);
+          } else {
+            synth.playWrong();
+            alert(`Mablag' yetarli emas! Ushbu ustozni ochish uchun sizga ${cost} ta yulduzli ball kerak. Hozirgi ballaringiz: ${score} ⭐️. Masalalarni yechishda davom eting!`);
+          }
         } else {
-          // Warning chime
-          synth.playWrong();
-          alert(`Mablag' yetarli emas! Ushbu ustozni ochish uchun sizga ${cost} ta yulduzli ball kerak. Hozirgi ballaringiz: ${score} ⭐️. Masalalarni yechishda davom eting!`);
+          // Select path
+          selectAvatar(avatarId);
         }
-      } else {
-        // Select path
-        selectAvatar(avatarId);
-      }
-    });
+      });
+    }
   });
 
   function selectAvatar(avatarId) {
     currentAvatar = avatarDetails[avatarId].emoji;
     currentAvatarName = avatarDetails[avatarId].name;
     
-    // Header updates
     activeTutorAvatar.textContent = currentAvatar;
     activeTutorName.textContent = currentAvatarName;
     
-    // Change select active visual buttons in shop
     shopItemElements.forEach(item => {
       const actBtn = item.querySelector(".btn-avatar-action");
       const aId = item.id.replace("shop-item-", "");
       
-      item.classList.remove("active-item");
-      if (unlockedAvatars[aId]) {
-        actBtn.textContent = "Tanlash";
-        actBtn.removeAttribute("disabled");
-        actBtn.classList.remove("active-avatar");
+      if (actBtn && !aId.startsWith("badge")) {
+        item.classList.remove("active-item");
+        if (unlockedAvatars[aId]) {
+          actBtn.textContent = "Tanlash";
+          actBtn.removeAttribute("disabled");
+          actBtn.classList.remove("active-avatar");
+        }
       }
     });
 
     const activeItem = document.getElementById(`shop-item-${avatarId}`);
-    activeItem.classList.add("active-item");
-    const activeBtn = activeItem.querySelector(".btn-avatar-action");
-    activeBtn.textContent = "Tanlangan";
-    activeBtn.setAttribute("disabled", "true");
-    activeBtn.classList.add("active-avatar");
+    if (activeItem) {
+      activeItem.classList.add("active-item");
+      const activeBtn = activeItem.querySelector(".btn-avatar-action");
+      activeBtn.textContent = "Tanlangan";
+      activeBtn.setAttribute("disabled", "true");
+      activeBtn.classList.add("active-avatar");
+    }
 
-    // Close shop drawer
     shopDrawer.classList.remove("open");
-    
-    // Synthesize feedback
     synth.playCorrect();
     renderSystemMessage(`👨‍🏫 Virtual ustoz o'zgartirildi: ${currentAvatarName}`);
+  }
+
+  // --- TROPHY ACHIEVEMENTS DRAWER TOGGLE ---
+  achievementsToggleBtn.addEventListener("click", () => {
+    synth.playCorrect();
+    trophyDrawer.classList.toggle("open");
+    shopDrawer.classList.remove("open");
+  });
+
+  closeTrophiesBtn.addEventListener("click", () => {
+    synth.playWrong();
+    trophyDrawer.classList.remove("open");
+  });
+
+  function checkAchievementsUnlock() {
+    // 1. Check Task 2 (Logic) solved
+    if (currentTask === "task2" && currentState === "success_state" && !unlockedBadges.logic) {
+      unlockedBadges.logic = true;
+      unlockBadgeDOM("logic");
+    }
+    
+    // 2. Check Task 3 (Geometry) solved
+    if (currentTask === "task3" && currentState === "success_state" && !unlockedBadges.geometry) {
+      unlockedBadges.geometry = true;
+      unlockBadgeDOM("geometry");
+    }
+
+    // 3. Check Perfect Socratic Run solved
+    if (currentState === "success_state" && !hasMadeWrongChoice && !unlockedBadges.perfect) {
+      unlockedBadges.perfect = true;
+      unlockBadgeDOM("perfect");
+    }
+  }
+
+  function unlockBadgeDOM(badgeId) {
+    const badgeItem = document.getElementById(`badge-${badgeId}`);
+    if (badgeItem) {
+      badgeItem.classList.remove("locked");
+      badgeItem.classList.add("unlocked");
+      
+      const actBtn = badgeItem.querySelector(".btn-avatar-action");
+      if (actBtn) {
+        actBtn.textContent = "Ochildi 🏆";
+        actBtn.classList.add("active-avatar");
+      }
+      
+      synth.playSuccess();
+      renderSystemMessage(`🏆 Katta yutuq! Siz yangi nishonni ochdingiz: "${badgeId === 'logic' ? 'Mantiq Qiroli' : badgeId === 'geometry' ? 'Yosh Al-Xorazmiy' : 'Mustaqil Fikrlovchi'}"!`);
+    }
   }
 
   // --- SOCRATIC CHAT SIMULATOR ENGINE ---
   function initChat(taskName) {
     currentTask = taskName;
     currentState = "init";
+    hasMadeWrongChoice = false; // Reset perfect run check
     chatMessagesBox.innerHTML = "";
     
     renderMessage("tutor", dialogueData[currentTask].init.tutorMsg);
@@ -508,10 +708,23 @@ document.addEventListener("DOMContentLoaded", () => {
     const textBox = document.createElement("div");
     textBox.classList.add("msg-text-box");
     
-    // Simple markdown helper for bold inside text
+    // Markdown replacement
     let formattedText = text.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>");
     formattedText = formattedText.replace(/\n/g, "<br>");
     textBox.innerHTML = formattedText;
+
+    // Append speaker TTS read button for tutor bubbles
+    if (sender === "tutor" && !isHint) {
+      const speakBtn = document.createElement("button");
+      speakBtn.classList.add("speech-bubble-speaker-btn");
+      speakBtn.innerHTML = "🔊";
+      speakBtn.title = "Ovoz chiqarib o'qish";
+      speakBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        speakUzbek(text);
+      });
+      textBox.appendChild(speakBtn);
+    }
 
     bubble.appendChild(avatar);
     bubble.appendChild(textBox);
@@ -570,13 +783,13 @@ document.addEventListener("DOMContentLoaded", () => {
       score += 15;
       scoreCounter.textContent = score;
       
-      // Reactive purchase button unlocks
       updateShopPurchaseButtons();
 
       scoreCounter.classList.add("animate-pulse");
       setTimeout(() => scoreCounter.classList.remove("animate-pulse"), 1000);
     } else {
       synth.playWrong();
+      hasMadeWrongChoice = true; // Perfect run broken
     }
 
     // Delay for realistic tutor typing feel
@@ -602,6 +815,7 @@ document.addEventListener("DOMContentLoaded", () => {
           // Victory fanfare if completed
           if (choice.nextState === "success_state") {
             synth.playSuccess();
+            checkAchievementsUnlock(); // Check nishonlar criteria
           }
         }
       }, 800);
@@ -610,11 +824,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function updateShopPurchaseButtons() {
     shopItemElements.forEach(item => {
-      const cost = parseInt(item.getAttribute("data-cost"));
+      const cost = parseInt(item.getAttribute("data-cost") || "0");
       const avatarId = item.id.replace("shop-item-", "");
       const actionBtn = item.querySelector(".btn-avatar-action");
 
-      if (!unlockedAvatars[avatarId]) {
+      if (actionBtn && avatarId && !avatarId.startsWith("badge") && !unlockedAvatars[avatarId]) {
         if (score >= cost) {
           actionBtn.classList.remove("btn-outline");
           actionBtn.classList.add("btn-primary");
@@ -718,11 +932,9 @@ document.addEventListener("DOMContentLoaded", () => {
         voiceStatusMsg.style.display = "none";
         isRecording = false;
 
-        // Injected child voice speech text
         let spokenText = "";
         let choiceToTrigger = null;
 
-        // Custom spoken phrases depending on task state
         if (currentTask === "task1" && currentState === "init") {
           spokenText = "Ahmadning boshidagi olmalarini bilib olaylik.";
           choiceToTrigger = dialogueData.task1.init.choices[0];
@@ -747,40 +959,10 @@ document.addEventListener("DOMContentLoaded", () => {
     }, 3000);
   });
 
-  // --- PARENTS DASHBOARD CHART METRIC UPDATES ---
-  const dbDataSets = {
-    weekly: {
-      radarPoints: "100,28 159,80 147,164 65,146 27,76",
-      radarDots: [
-        { cx: 100, cy: 28 },
-        { cx: 159, cy: 80 },
-        { cx: 147, cy: 164 },
-        { cx: 65, cy: 146 },
-        { cx: 27, cy: 76 }
-      ],
-      barHeights: ["40%", "60%", "30%", "80%", "90%", "100%", "50%"],
-      barValues: ["4 ta", "6 ta", "3 ta", "8 ta", "9 ta", "12 ta", "5 ta"],
-      solved: "47 ta masala yechildi",
-      avgTime: "Kuniga 22 daqiqa",
-      leadText: "Jasurbek bu hafta **ayirish amali** va **mantiqiy taqqoslash** mavzularida sezilarli o‘sish ko‘rsatdi. Mustaqil yechishga urinish koeffitsiyenti o'ta yuqori.",
-      recText: "Jasurbekka darslardan so'ng 10-15 daqiqa davomida rasmga asosan tuzilgan sodda bo'lish masalalarini o'yin tarzida yechishni taklif qilamiz. Masala shartini ovoz chiqarib o'qitish foydali."
-    },
-    monthly: {
-      radarPoints: "100,19 168,77 142,158 54,141 32,77",
-      radarDots: [
-        { cx: 100, cy: 19 },
-        { cx: 168, cy: 77 },
-        { cx: 142, cy: 158 },
-        { cx: 54,  cy: 141 },
-        { cx: 32,  cy: 77 }
-      ],
-      barHeights: ["70%", "80%", "95%", "85%", "60%", "90%", "75%"],
-      barValues: ["24 ta", "28 ta", "32 ta", "30 ta", "22 ta", "31 ta", "25 ta"],
-      solved: "192 ta masala yechildi",
-      avgTime: "Kuniga 28 daqiqa",
-      leadText: "Oylik tahlil shuni ko'rsatadiki, Jasurbek **STEM va geometrik masalalarni** vizual tasavvur qilishda 94% natijaga erishdi. Tezlik darajasi barqaror o'smoqda.",
-      recText: "Jasurbekning oylik ko'rsatkichlari juda a'lo! Keyingi oydan uni biroz murakkabroq kombinatorik va arifmetik to'plamlar bilan band qilishni tavsiya qilamiz."
-    }
+  // --- 4. PARENTS DASHBOARD & TELEGRAM SIMULATOR METRIC UPDATES ---
+  const tgMessages = {
+    weekly: `<b>📊 HAFTALIK BOG'LIQ PEDAGOGIK REPORT</b>\n\n<b>Jasurbek O'rinov</b> (2-"B" sinfi):\n\n• O'zlashtirish darajasi: <b>92%</b>\n• Jami masalalar: <b>47 ta</b>\n• Kognitiv rivojlanish: ayirish amali va mantiqiy masalalarda a'lo.\n\n⚠️ Tavsiya: bo'lish amali bo'yicha vizual o'yinli masalalarga e'tibor qarating.`,
+    monthly: `<b>📅 OYLIK KOGNITIV MONITORING REPORT</b>\n\n<b>Jasurbek O'rinov</b> (2-"B" sinfi):\n\n• O'zlashtirish darajasi: <b>94%</b>\n• Jami masalalar: <b>192 ta</b>\n• O'rtacha dars vaqti: kuniga <b>28 daqiqa</b>\n• Mustaqil fikrlash koeffitsiyenti o'ta yuqori (89%).\n\n🤖 Tavsiya: unga geometriya va kombinatorik masalalar to'plamini tavsiya qilamiz.`
   };
 
   periodBtns.forEach(btn => {
@@ -824,6 +1006,20 @@ document.addEventListener("DOMContentLoaded", () => {
     let formattedLead = data.leadText.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>");
     reportLeadText.innerHTML = formattedLead;
     aiRecText.textContent = data.recText;
+
+    // Dynamically update the Telegram Bot Mock preview bubbles
+    updateTelegramMock(period);
+  }
+
+  function updateTelegramMock(period) {
+    const time = new Date().toLocaleTimeString('uz-UZ', { hour: '2-digit', minute: '2-digit' });
+    tgChatBody.innerHTML = `
+      <div class="tg-bubble incoming">
+        <h6>Tushunib Yech AI Bot</h6>
+        <p>${tgMessages[period]}</p>
+        <span class="tg-time">${time}</span>
+      </div>
+    `;
   }
 
   // --- B2B SCHOOL DASHBOARD TOGGLE ---
@@ -867,10 +1063,9 @@ document.addEventListener("DOMContentLoaded", () => {
       b2bLabel.classList.add("active");
       b2cLabel.classList.remove("active");
       
-      // UX Touch: Glow-pulse the Teacher dashboard tab to notify the user they can test B2B
+      // UX Touch
       btnViewTeacher.classList.add("highlight-pulse");
       
-      // Smooth scroll back to dashboard after a delay to guide the user
       setTimeout(() => {
         document.getElementById("dashboard").scrollIntoView({ behavior: "smooth" });
       }, 1000);
